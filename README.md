@@ -80,14 +80,103 @@ You'll see a detailed report of any outdated dependencies across your projects.
 
 ## ⚙️ Configuration Options
 
-| Parameter      | Description                                                               |
-|----------------|---------------------------------------------------------------------------|
-| `USERNAME`     | Your GitHub username.                                                      |
-| `TOKEN`        | Personal Access Token with `repo` and `workflow` scopes.                   |
-| `MODE`         | `scan` to only report, `update` to also create PRs.                        |
-| `REPO_FILTER`  | Comma‑separated list of repo names to scan (leave blank for all).          |
-| `ECOSYSTEMS`   | Comma‑separated list: `python`, `node`, `java`, `go`.                      |
-| `ACTION_DELAY` | Seconds to wait between API calls (avoid rate limits).                     |
+All parameters are adjustable directly in the Colab form.
+
+| Parameter      | Description | Example Value |
+|----------------|-------------|---------------|
+| `USERNAME`     | Your GitHub username (the account that owns the repositories). | `"Shineii86"` |
+| `TOKEN`        | Personal Access Token (classic) with `repo` and `workflow` scopes. **Never share this token.** | `"ghp_abc123def456..."` |
+| `MODE`         | `scan` → Only report outdated dependencies.<br>`update` → Report **and** automatically create pull requests with the updates. | `"scan"` or `"update"` |
+| `REPO_FILTER`  | Comma‑separated list of repository names to scan. Leave **blank** to scan **all** repositories under your account. | `"my-python-app, node-api, java-backend"` |
+| `ECOSYSTEMS`   | Comma‑separated list of package ecosystems to check. Supported values: `python`, `node`, `java`, `go`. | `"python,node"` → scans only Python and Node.js projects.<br>`"python,node,java,go"` → scans all four. |
+| `ACTION_DELAY` | Seconds to wait between API calls. Helps avoid hitting GitHub's rate limits. Increase if you have many repositories. | `1` (default) or `2` for large scans. |
+
+### 🧪 Example Configurations
+
+**1. Quick audit of all Python repos (report only):**
+```
+USERNAME = "octocat"
+TOKEN = "ghp_..."
+MODE = "scan"
+REPO_FILTER = ""
+ECOSYSTEMS = "python"
+ACTION_DELAY = 1
+```
+
+**2. Update Node.js and Go dependencies in two specific repos (create PRs):**
+```
+USERNAME = "octocat"
+TOKEN = "ghp_..."
+MODE = "update"
+REPO_FILTER = "my-node-service, go-microservice"
+ECOSYSTEMS = "node,go"
+ACTION_DELAY = 2
+```
+
+**3. Full‑scale scan of all ecosystems across all repositories (report only):**
+```
+USERNAME = "octocat"
+TOKEN = "ghp_..."
+MODE = "scan"
+REPO_FILTER = ""
+ECOSYSTEMS = "python,node,java,go"
+ACTION_DELAY = 1
+```
+
+---
+
+## 📊 Sample Output
+
+### Scan Mode
+```
+🌱 Repo Gardener (Multi‑Ecosystem) for user 'Shineii86'
+Mode: SCAN
+Ecosystems: python,node,java,go
+==================================================
+📂 Found 12 repositories to scan.
+
+🔍 Scanning Shineii86/my-python-app...
+  📦 [Python] Found 2 outdated package(s):
+     - requests: 2.28.1 → 2.32.3
+     - numpy: 1.24.0 → 1.26.4
+  ✅ [Node.js] All dependencies up-to-date.
+
+🔍 Scanning Shineii86/node-api...
+  ✅ [Python] All dependencies up-to-date.
+  📦 [Node.js] Found 3 outdated package(s):
+     - express: 4.18.0 → 4.21.0
+     - axios: 1.4.0 → 1.7.7
+     - dotenv: 16.0.0 → 16.4.5
+
+...
+
+==================================================
+📊 Summary: Found outdated dependencies in 5 repository(ies).
+
+📁 Shineii86/my-python-app:
+  [Python]
+    - requests: 2.28.1 → 2.32.3
+    - numpy: 1.24.0 → 1.26.4
+```
+
+### Update Mode (Creates PR)
+After scanning, you'll see:
+```
+...
+  🎉 Created PR: https://github.com/Shineii86/my-python-app/pull/7
+```
+
+The generated pull request will look like:
+
+> **🌱 Repo Gardener: Update dependencies**
+>
+> This PR updates outdated dependencies:
+>
+> ### Python
+> - `requests`: 2.28.1 → 2.32.3
+> - `numpy`: 1.24.0 → 1.26.4
+>
+> *This PR was automatically created by [Repo Gardener](https://github.com/Shineii86/RepoGardener).*
 
 ---
 
@@ -138,6 +227,18 @@ To run this weekly:
 2. Search for **"Run on schedule"**.
 3. Set a schedule (e.g., every Monday at 9 AM).
 4. Save the notebook to your Google Drive.
+
+---
+
+## 🆘 Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `API request failed: 403` | Your token lacks required scopes. Ensure `repo` and `workflow` are checked. |
+| `Bad credentials` | Your token is expired or incorrect. Generate a new one. |
+| No outdated packages found but you expected some | Check that the ecosystem is selected and the dependency file exists at the repo root. |
+| PR creation fails | The repository may have branch protection rules. Try running in `scan` mode first to verify. |
+| Rate limit exceeded | Increase `ACTION_DELAY` to `2` or `3` seconds. |
 
 ---
 
